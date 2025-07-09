@@ -1,0 +1,103 @@
+drop database medicalstore;
+CREATE DATABASE IF NOT EXISTS medicalstore;
+USE medicalstore;
+
+-- Create medicines table
+CREATE TABLE medicines (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    batch_no VARCHAR(50),
+    price DOUBLE,
+    quantity INT,
+    expiry_date DATE,
+    category VARCHAR(50)
+);
+
+-- Create invoices table
+CREATE TABLE invoices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATETIME,
+    total DOUBLE,
+    discount DOUBLE,
+    final_total DOUBLE
+);
+
+-- Create invoice_items table
+CREATE TABLE invoice_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id INT,
+    medicine_id INT,
+    quantity INT,
+    price DOUBLE,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
+);
+
+-- Create users table
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(50),
+    role VARCHAR(10) -- 'admin' or 'cashier'
+);
+
+-- Insert sample users
+INSERT INTO users (username, password, role) VALUES
+('admin', 'admin123', 'admin'),
+('cashier', 'cashier123', 'cashier'),
+('Nithish', 'Nithish123', 'admin'),
+('Maitreyan', 'Maitreyan123', 'cashier');
+
+-- Insert sample medicines with categories
+INSERT INTO medicines (name, batch_no, quantity, price, expiry_date, category)
+VALUES
+('Paracetamol', 'B1001', 50, 15.0, '2026-01-01', 'Painkiller'),
+('Ibuprofen', 'B1002', 30, 25.0, '2025-12-01', 'Painkiller'),
+('Cetrizine', 'B1003', 80, 10.0, '2024-11-01', 'Antihistamine'),
+('Amoxicillin', 'B1004', 20, 50.0, '2025-06-15', 'Antibiotic'),
+('Azithromycin', 'B1006', 60, 45.0, '2026-02-15', 'Antibiotic'),
+('Dolo 650', 'B1007', 150, 18.0, '2026-05-01', 'Painkiller'),
+('Vitamin C', 'B1008', 200, 5.0, '2027-01-10', 'Supplement'),
+('Loratadine', 'B1009', 90, 22.0, '2025-11-20', 'Antihistamine'),
+('Ciprofloxacin', 'B1010', 40, 35.0, '2026-03-30', 'Antibiotic'),
+('Metformin', 'B1011', 80, 10.0, '2025-07-01', 'Antidiabetic'),
+('Atorvastatin', 'B1012', 55, 28.0, '2026-08-25', 'Cholesterol'),
+('Ranitidine', 'B1013', 120, 6.0, '2025-09-15', 'Antacid'),
+('Omeprazole', 'B1014', 75, 15.5, '2025-12-12', 'Antacid');
+
+-- Insert into category_discounts
+CREATE TABLE category_discounts (
+    category VARCHAR(50) PRIMARY KEY,
+    discount_percent DOUBLE NOT NULL
+);
+
+-- Sample category discounts
+INSERT INTO category_discounts (category, discount_percent) VALUES
+('Painkiller', 10.0),
+('Antibiotic', 15.0),
+('Antihistamine', 5.0),
+('Supplement', 8.0),
+('Antacid', 7.5),
+('Antidiabetic', 12.0),
+('Cholesterol', 10.0);
+
+-- Insert a sample invoice and invoice items
+INSERT INTO invoices (date, total, discount, final_total)
+VALUES (NOW(), 100.0, 10.0, 90.0);
+
+INSERT INTO invoice_items (invoice_id, medicine_id, quantity, price)
+VALUES 
+(1, 1, 2, 15.0),  -- Paracetamol
+(1, 2, 1, 25.0);  -- Ibuprofen
+
+-- View all medicines with category
+SELECT * FROM medicines;
+
+-- View all category discounts
+SELECT * FROM category_discounts;
+
+-- View joined medicine and discount info
+SELECT m.id, m.name, m.category, m.price, m.quantity, 
+       IFNULL(cd.discount_percent, 0) AS discount_percent
+FROM medicines m
+LEFT JOIN category_discounts cd ON m.category = cd.category;
